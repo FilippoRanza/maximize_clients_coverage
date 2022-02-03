@@ -17,17 +17,16 @@ m = 10000
 K = rand(50:100)
 
 
-@time @variable(model, 0 <= x[1:n], Int)
-@time @variable(model, z[1:n], Bin)
-@time @variable(model, y[i = 1:n, j = 1:m], Bin)
+@variable(model, 0 <= x[1:n], Int)
+@variable(model, z[1:n], Bin)
+@variable(model, y[i = 1:n, j = 1:m], Bin)
 
-@time @constraint(model, c0, 2000sum(z) + 12000sum(x) + sum(ϕ .* x) <= 100000)
-@time @constraint(model, c1,  x .<= ν .* z)
-@time @constraint(model, c3, K .* x .<=  λ )
- 
-@time c4 = @constraint(model, [i = 1:n], α[i, :]' * y[i, :] <= K .* x[i])
+@constraint(model, c0, 2000sum(z) + 12000sum(x) + sum(ϕ .* x) <= 100000)
+@constraint(model, c1,  x .<= ν .* z)
+@constraint(model, c3, K .* x .<=  λ )
+c4 = @constraint(model, [i = 1:n], α[i, :]' * y[i, :] <= K .* x[i])
 
-@time @objective(model, Max, α[:]' * y[:])
+@objective(model, Max, α[:]' * y[:])
 optimize!(model)
 if termination_status(model) == OPTIMAL
     println(value.(x))
