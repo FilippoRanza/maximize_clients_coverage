@@ -5,8 +5,31 @@ using JuMP
 model = Model(Cbc.Optimizer)
 set_optimizer_attribute(model, "threads", 8) 
 
-n = 100
-m = 1000
+struct ModelVariables 
+    x
+    y
+    z
+end
+
+function build_model!(model, A, Γ, c, Φ, Π, Σ, κ, t, Λ)
+    n, m = size(A)
+    @variable(model, 0 <= x[1:n], Int)
+    @variable(model, z[1:n], Bin)
+    @variable(model, y[i = 1:n, j = 1:m], Bin)
+
+    @constraint(model, c0, Γ' * z + (c .+ Φ)' * x <= t)
+    @constraint(model, c1[i = 1:n],  x[i] <= Σ[i] * z[i])
+    @constraint(model, c2, x .>= Π)
+    @constraint(model, c3[i  = 1:n], κ * x[i] <=  Λ[i])
+    @constraint(model, c4[i = 1:n], A[i, :]' * y[i, :] <= κ * x[i])
+
+    @objective(model, Max, A[:]' * y[:])
+    ModelVariables(x, y, z)
+end
+
+
+n = 10000
+m = 10
 ϕ = 1000rand(n) .+ 1500
 δ = rand(0:1, n, m)
 α = rand(n, m) .* δ
@@ -14,19 +37,10 @@ m = 1000
 ν = rand(1:6, n)
 K = rand(50:100)
 
-
-@variable(model, 0 <= x[1:n], Int)
-@variable(model, z[1:n], Bin)
-@variable(model, y[i = 1:n, j = 1:m], Bin)
-
-@constraint(model, c0, 2000sum(z) + 12000sum(x) + sum(ϕ .* x) <= 100000)
-@constraint(model, c1,  x .<= ν .* z)
-@constraint(model, c3, K .* x .<=  λ )
-c4 = @constraint(model, [i = 1:n], α[i, :]' * y[i, :] <= K .* x[i])
-
-@objective(model, Max, α[:]' * y[:])
-#optimize!(model)
+vars = build_model!(model, α, 1500ones(n), 15000, ϕ, zeros(n), ν, K, 250000, λ)
+# optimize!(model)
 if termination_status(model) == OPTIMAL
-    println(value.(x))
-    println(value.(z))
+    println(value.(vars.x))
+    println(value.(vars.y))
+    println(value.(vars.z))
 end
