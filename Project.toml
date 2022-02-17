@@ -1,3 +1,4 @@
 [deps]
 Cbc = "9961bab8-2fa3-5c5a-9d89-47fab24efd76"
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"

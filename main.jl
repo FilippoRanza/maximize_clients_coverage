@@ -1,14 +1,12 @@
-using Pkg
-Pkg.activate(".")
-
-using JuMP
 using Cbc
+using HDF5
+using JuMP
 
 model = Model(Cbc.Optimizer)
 set_optimizer_attribute(model, "threads", 8) 
 
 n = 100
-m = 10000
+m = 1000
 ϕ = 1000rand(n) .+ 1500
 δ = rand(0:1, n, m)
 α = rand(n, m) .* δ
@@ -27,7 +25,7 @@ K = rand(50:100)
 c4 = @constraint(model, [i = 1:n], α[i, :]' * y[i, :] <= K .* x[i])
 
 @objective(model, Max, α[:]' * y[:])
-optimize!(model)
+#optimize!(model)
 if termination_status(model) == OPTIMAL
     println(value.(x))
     println(value.(z))
