@@ -28,7 +28,7 @@ function build_model!(model, A, Γ, c, Φ, Π, Σ, κ, t, Λ)
 end
 
 
-n = 10000
+n = 10
 m = 10
 ϕ = 1000rand(n) .+ 1500
 δ = rand(0:1, n, m)
@@ -37,7 +37,7 @@ m = 10
 ν = rand(1:6, n)
 K = rand(50:100)
 
-vars = build_model!(model, α, 1500ones(n), 15000, ϕ, zeros(n), ν, K, 250000, λ)
+vars = build_model!(model, α, 1500ones(n), 15000, ϕ, zeros(n), ν, K, 25000, λ)
 # optimize!(model)
 if termination_status(model) == OPTIMAL
     println(value.(vars.x))
