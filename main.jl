@@ -1,4 +1,4 @@
-using Cbc
+using Gurobi
 using HDF5
 using JuMP
 using YAML
@@ -6,7 +6,7 @@ using Configurations
 
 include("make_instance.jl")
 
-model = Model(Cbc.Optimizer)
+model = Model(Gurobi.Optimizer)
 set_optimizer_attribute(model, "threads", 8) 
 
 @option struct Configuration
@@ -59,7 +59,7 @@ n, m = size(A)
 ν = rand(1:6, n)
 K = rand(50:100)
 
-vars = build_model!(model, A, 1500ones(n), 15000, ϕ, zeros(n), ν, K, 25000, Λ)
+@time vars = build_model!(model, A, 1500ones(n), 15000, ϕ, zeros(n), ν, K, 250000, Λ)
 optimize!(model)
 if termination_status(model) == OPTIMAL
     println(value.(vars.x))
