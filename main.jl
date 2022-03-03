@@ -1,19 +1,18 @@
 using Gurobi
-using HDF5
 using JuMP
 using YAML
 using Configurations
 
+
 include("make_instance.jl")
+include("load_instance.jl")
 
 model = Model(Gurobi.Optimizer)
 set_optimizer_attribute(model, "threads", 8) 
 
 @option struct Configuration
-    client_file::String
-    client_resource::String
-    station_file::String    
-    station_resource::String
+    instance_file::String
+    instance_name::String
 end
 
 function load_config(file_name)
@@ -47,22 +46,12 @@ end
 
 config = load_config("config.yml")
 
+instance = load_istance(config.instance_file, config.instance_name)
 
-clients = h5read(config.client_file, config.client_resource)
-stations = h5read(config.station_file, config.station_resource)
-
-
-A, Λ = make_instance(clients, stations)
-n, m = size(A)
-
-ϕ = 1000rand(n) .+ 1500
-ν = rand(1:6, n)
-K = rand(50:100)
-
-@time vars = build_model!(model, A, 1500ones(n), 15000, ϕ, zeros(n), ν, K, 250000, Λ)
+A, Λ = make_instance(instance.clients, instance.stations)
+vars = build_model!(model, A, instance.Γ, instance.c, instance.ϕ, instance.Π, instance.Σ, instance.k, instance.T, Λ)
 optimize!(model)
 if termination_status(model) == OPTIMAL
     println(value.(vars.x))
-    # println(value.(vars.y))
     println(value.(vars.z))
 end
